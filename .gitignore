@@ -1,0 +1,31 @@
+# Environment
+.env
+
+# Secrets (niemals committen!)
+*.key
+signing.key
+
+# Generated configs with secrets
+config/homeserver.yaml.generated
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

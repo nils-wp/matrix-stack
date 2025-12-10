@@ -1,0 +1,33 @@
+{
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://${SYNAPSE_DOMAIN}",
+      "server_name": "${BASE_DOMAIN}"
+    }
+  },
+  "brand": "NG Automation Chat",
+  "integrations_ui_url": "",
+  "integrations_rest_url": "",
+  "integrations_widgets_urls": [],
+  "disable_custom_urls": false,
+  "disable_guests": true,
+  "disable_login_language_selector": false,
+  "disable_3pid_login": true,
+  "default_country_code": "DE",
+  "show_labs_settings": true,
+  "features": {
+    "feature_video_rooms": true,
+    "feature_element_call_video_rooms": true,
+    "feature_group_calls": true
+  },
+  "default_theme": "dark",
+  "room_directory": {
+    "servers": ["${BASE_DOMAIN}"]
+  },
+  "setting_defaults": {
+    "breadcrumbs": true
+  },
+  "jitsi": {
+    "preferred_domain": "meet.element.io"
+  }
+}

@@ -1,0 +1,175 @@
+version: "3.8"
+
+# =============================================================================
+# MATRIX SYNAPSE + ELEMENT + BRIDGES
+# Coolify-Ready Setup für 4 User mit WhatsApp, Telegram, Slack Bridges
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # POSTGRESQL DATABASE
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: matrix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: synapse
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - matrix-internal
+
+  # ---------------------------------------------------------------------------
+  # SYNAPSE HOMESERVER
+  # ---------------------------------------------------------------------------
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix-synapse
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SYNAPSE_CONFIG_DIR: /data
+      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+      UID: 1000
+      GID: 1000
+    volumes:
+      - synapse_data:/data
+      - ./config/homeserver.yaml:/data/homeserver.yaml:ro
+      - ./config/log.config:/data/log.config:ro
+      - ./bridges/whatsapp/registration.yaml:/data/bridges/whatsapp.yaml:ro
+      - ./bridges/telegram/registration.yaml:/data/bridges/telegram.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.synapse.rule=Host(`${SYNAPSE_DOMAIN}`)"
+      - "traefik.http.routers.synapse.entrypoints=https"
+      - "traefik.http.routers.synapse.tls=true"
+      - "traefik.http.routers.synapse.tls.certresolver=letsencrypt"
+      - "traefik.http.services.synapse.loadbalancer.server.port=8008"
+      # Federation endpoint
+      - "traefik.http.routers.synapse-federation.rule=Host(`${SYNAPSE_DOMAIN}`) && PathPrefix(`/_matrix/federation`)"
+      - "traefik.http.routers.synapse-federation.entrypoints=https"
+      - "traefik.http.routers.synapse-federation.tls=true"
+    networks:
+      - matrix-internal
+      - coolify
+
+  # ---------------------------------------------------------------------------
+  # ELEMENT WEB CLIENT
+  # ---------------------------------------------------------------------------
+  element:
+    image: vectorim/element-web:latest
+    container_name: matrix-element
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    volumes:
+      - ./config/element-config.json:/app/config.json:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.element.rule=Host(`${ELEMENT_DOMAIN}`)"
+      - "traefik.http.routers.element.entrypoints=https"
+      - "traefik.http.routers.element.tls=true"
+      - "traefik.http.routers.element.tls.certresolver=letsencrypt"
+      - "traefik.http.services.element.loadbalancer.server.port=80"
+    networks:
+      - matrix-internal
+      - coolify
+
+  # ---------------------------------------------------------------------------
+  # WELL-KNOWN DELEGATION (für @user:domain.de statt @user:matrix.domain.de)
+  # ---------------------------------------------------------------------------
+  well-known:
+    image: nginx:alpine
+    container_name: matrix-wellknown
+    restart: unless-stopped
+    volumes:
+      - ./config/well-known.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./config/well-known:/usr/share/nginx/html/.well-known:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wellknown.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`/.well-known/matrix`)"
+      - "traefik.http.routers.wellknown.entrypoints=https"
+      - "traefik.http.routers.wellknown.tls=true"
+      - "traefik.http.routers.wellknown.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wellknown.loadbalancer.server.port=80"
+    networks:
+      - coolify
+
+  # ---------------------------------------------------------------------------
+  # MAUTRIX-WHATSAPP BRIDGE
+  # ---------------------------------------------------------------------------
+  whatsapp-bridge:
+    image: dock.mau.dev/mautrix/whatsapp:latest
+    container_name: matrix-whatsapp
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    volumes:
+      - whatsapp_data:/data
+      - ./bridges/whatsapp/config.yaml:/data/config.yaml
+    networks:
+      - matrix-internal
+
+  # ---------------------------------------------------------------------------
+  # MAUTRIX-TELEGRAM BRIDGE
+  # ---------------------------------------------------------------------------
+  telegram-bridge:
+    image: dock.mau.dev/mautrix/telegram:latest
+    container_name: matrix-telegram
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    volumes:
+      - telegram_data:/data
+      - ./bridges/telegram/config.yaml:/data/config.yaml
+    networks:
+      - matrix-internal
+
+  # ---------------------------------------------------------------------------
+  # MATTERBRIDGE (SLACK + ANDERE)
+  # ---------------------------------------------------------------------------
+  matterbridge:
+    image: 42wim/matterbridge:latest
+    container_name: matrix-matterbridge
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    volumes:
+      - ./bridges/matterbridge/matterbridge.toml:/etc/matterbridge/matterbridge.toml:ro
+    networks:
+      - matrix-internal
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  postgres_data:
+  synapse_data:
+  whatsapp_data:
+  telegram_data:
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  matrix-internal:
+    driver: bridge
+  coolify:
+    external: true

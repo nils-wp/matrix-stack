@@ -1,0 +1,18 @@
+# Diese Datei registriert die Telegram Bridge bei Synapse
+id: telegram
+url: http://telegram-bridge:29317
+as_token: ${TELEGRAM_AS_TOKEN}
+hs_token: ${TELEGRAM_HS_TOKEN}
+sender_localpart: telegrambot
+rate_limited: false
+namespaces:
+  users:
+    - regex: ^@telegram_[0-9]+:${BASE_DOMAIN_ESCAPED}$
+      exclusive: true
+    - regex: ^@telegrambot:${BASE_DOMAIN_ESCAPED}$
+      exclusive: true
+  aliases:
+    - regex: ^#telegram_.+:${BASE_DOMAIN_ESCAPED}$
+      exclusive: true
+de.sorunome.msc2409.push_ephemeral: true
+push_ephemeral: true

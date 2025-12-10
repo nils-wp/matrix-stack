@@ -1,0 +1,103 @@
+# =============================================================================
+# SYNAPSE HOMESERVER CONFIGURATION
+# Angepasst für Coolify Deployment mit Bridges
+# =============================================================================
+
+# Server-Identität - NICHT ÄNDERN NACH ERSTEM START!
+server_name: "${BASE_DOMAIN}"
+public_baseurl: "https://${SYNAPSE_DOMAIN}/"
+
+# Listener
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ['0.0.0.0']
+    resources:
+      - names: [client, federation]
+        compress: false
+
+# Datenbank
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: "${DB_PASSWORD}"
+    database: synapse
+    host: postgres
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+# Logging
+log_config: "/data/log.config"
+
+# Media Store
+media_store_path: /data/media_store
+max_upload_size: 50M
+url_preview_enabled: true
+
+# Registrierung - GESCHLOSSEN, nur Admin kann User anlegen
+enable_registration: false
+registration_shared_secret: "${REGISTRATION_SECRET}"
+
+# Performance-Optimierung für kleine Server
+use_presence: false
+enable_search: true
+
+# Federation (optional deaktivieren für rein internen Server)
+# federation_domain_whitelist: []
+
+# Rate Limiting (entspannt für kleine Teams)
+rc_message:
+  per_second: 5
+  burst_count: 25
+
+rc_registration:
+  per_second: 0.1
+  burst_count: 3
+
+rc_login:
+  address:
+    per_second: 0.5
+    burst_count: 5
+  account:
+    per_second: 0.5
+    burst_count: 5
+
+# Signing Key - wird beim ersten Start generiert
+signing_key_path: "/data/signing.key"
+
+# Trusted Key Server
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+# Suppress Key Server Warnings
+suppress_key_server_warning: true
+
+# Report Stats (optional, für Matrix.org Statistik)
+report_stats: false
+
+# App Services (Bridges)
+app_service_config_files:
+  - /data/bridges/whatsapp.yaml
+  - /data/bridges/telegram.yaml
+
+# Retention Policy - Speicherplatz sparen
+retention:
+  enabled: true
+  default_policy:
+    min_lifetime: 1d
+    max_lifetime: 365d
+
+# Media Retention
+media_retention:
+  local_media_lifetime: 180d
+  remote_media_lifetime: 14d
+
+# Macaroon Secret Key
+macaroon_secret_key: "${MACAROON_SECRET}"
+
+# Form Secret
+form_secret: "${FORM_SECRET}"

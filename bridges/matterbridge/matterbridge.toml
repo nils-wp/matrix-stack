@@ -1,0 +1,71 @@
+# =============================================================================
+# MATTERBRIDGE CONFIGURATION
+# Verbindet Slack mit Matrix
+# Dokumentation: https://github.com/42wim/matterbridge/wiki
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# SLACK KONFIGURATION
+# Slack App erstellen: https://api.slack.com/apps
+# Benötigte Scopes: channels:history, channels:read, chat:write, users:read
+# -----------------------------------------------------------------------------
+[slack.ng-slack]
+Token = "${SLACK_BOT_TOKEN}"
+# Alternativ für Legacy: LegacyToken = "xoxp-..."
+
+# Optional: Bestimmte Channels ignorieren
+# IgnoreNicks = "slackbot"
+
+# -----------------------------------------------------------------------------
+# MATRIX KONFIGURATION  
+# -----------------------------------------------------------------------------
+[matrix.ng-matrix]
+Server = "https://${SYNAPSE_DOMAIN}"
+Login = "matterbridge"
+Password = "${MATTERBRIDGE_PASSWORD}"
+
+# Alternativ mit Token:
+# Token = "syt_..."
+
+# Nachrichten-Format
+RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
+ShowJoinPart = false
+
+# -----------------------------------------------------------------------------
+# GATEWAY: Welche Channels werden verbunden?
+# -----------------------------------------------------------------------------
+[[gateway]]
+name = "kunden-bridge"
+enable = true
+
+[[gateway.inout]]
+account = "slack.ng-slack"
+channel = "extern-kunden"
+
+[[gateway.inout]]
+account = "matrix.ng-matrix"
+channel = "#kunden:${BASE_DOMAIN}"
+
+# -----------------------------------------------------------------------------
+# WEITERER GATEWAY BEISPIEL: Interner Channel
+# -----------------------------------------------------------------------------
+# [[gateway]]
+# name = "team-sync"
+# enable = true
+#
+# [[gateway.inout]]
+# account = "slack.ng-slack"
+# channel = "team-intern"
+#
+# [[gateway.inout]]
+# account = "matrix.ng-matrix"
+# channel = "#team:${BASE_DOMAIN}"
+
+# -----------------------------------------------------------------------------
+# ALLGEMEINE EINSTELLUNGEN
+# -----------------------------------------------------------------------------
+[general]
+RemoteNickFormat = "[{PROTOCOL}/{BRIDGE}] <{NICK}> "
+MediaServerDownload = "https://${SYNAPSE_DOMAIN}"
+MediaDownloadPath = "/tmp/matterbridge"
+MediaDownloadSize = 10000000

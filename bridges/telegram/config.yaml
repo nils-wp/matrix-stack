@@ -1,0 +1,93 @@
+# =============================================================================
+# MAUTRIX-TELEGRAM BRIDGE CONFIGURATION
+# Dokumentation: https://docs.mau.fi/bridges/python/telegram/
+# =============================================================================
+
+homeserver:
+  address: http://synapse:8008
+  domain: ${BASE_DOMAIN}
+
+appservice:
+  address: http://telegram-bridge:29317
+  hostname: 0.0.0.0
+  port: 29317
+  database: sqlite:////data/telegram.db
+  id: telegram
+  bot:
+    username: telegrambot
+    displayname: Telegram Bridge Bot
+    avatar: mxc://maunium.net/tJCRmUyJDsgRNgqhOgoiHWbX
+  as_token: ${TELEGRAM_AS_TOKEN}
+  hs_token: ${TELEGRAM_HS_TOKEN}
+
+# Telegram API Credentials - von https://my.telegram.org
+telegram:
+  api_id: ${TELEGRAM_API_ID}
+  api_hash: ${TELEGRAM_API_HASH}
+  bot_token: ${TELEGRAM_BOT_TOKEN}
+  
+  # Connection Settings
+  connection:
+    timeout: 120
+    retries: 5
+    retry_delay: 1
+    flood_sleep_threshold: 60
+
+bridge:
+  username_template: telegram_{userid}
+  alias_template: telegram_{groupname}
+  displayname_template: "{displayname} (TG)"
+  
+  # Permissions
+  permissions:
+    "*": relaybot
+    "${BASE_DOMAIN}": user
+    "@admin:${BASE_DOMAIN}": admin
+
+  # Relay Bot für Gruppen-Bridging
+  relaybot:
+    authless_portals: true
+    whitelist_group_admins: true
+    ignore_own_incoming_events: true
+    message_formats:
+      m.text: "<b>$sender_displayname</b>: $message"
+      m.notice: "<b>$sender_displayname</b>: $message"
+      m.emote: "* <b>$sender_displayname</b> $message"
+      m.file: "<b>$sender_displayname</b> sent a file: $message"
+      m.image: "<b>$sender_displayname</b> sent an image $message"
+      m.audio: "<b>$sender_displayname</b> sent an audio file $message"
+      m.video: "<b>$sender_displayname</b> sent a video $message"
+      m.location: "<b>$sender_displayname</b> sent a location $message"
+
+  # Features
+  max_initial_member_sync: 100
+  sync_channel_members: true
+  sync_matrix_state: true
+  public_portals: false
+  sync_direct_chats: true
+  telegram_link_preview: true
+  
+  # Medien
+  animated_sticker:
+    target: webp
+    convert_from_webm: true
+
+logging:
+  version: 1
+  formatters:
+    precise:
+      format: "[%(levelname)s@%(name)s] %(message)s"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: precise
+  loggers:
+    mau:
+      level: WARNING
+    telethon:
+      level: WARNING
+    aiohttp:
+      level: WARNING
+  root:
+    level: WARNING
+    handlers: [console]
