@@ -19,9 +19,9 @@ Komplettes Matrix-Setup mit Synapse, Element Web und drei Bridges (WhatsApp, Tel
 - Hetzner CX31 (8GB RAM) oder besser
 - Coolify installiert
 - 3 Subdomains:
-  - `ng-automation.de` (Basis für User-IDs)
-  - `matrix.ng-automation.de` (Synapse API)
-  - `chat.ng-automation.de` (Element Web)
+  - `wolfbraun.link` (Basis für User-IDs)
+  - `matrix.wolfbraun.link` (Synapse API)
+  - `element.wolfbraun.link` (Element Web)
 
 ## Setup in 6 Schritten
 
@@ -62,7 +62,7 @@ Bei IONOS (oder deinem DNS-Provider):
 |-----|------|------|
 | A | @ | SERVER_IP |
 | A | matrix | SERVER_IP |
-| A | chat | SERVER_IP |
+| A | element | SERVER_IP |
 
 ### 5. In Coolify deployen
 
@@ -97,14 +97,14 @@ docker exec -it matrix-synapse register_new_matrix_user \
 
 ### WhatsApp
 
-1. Element öffnen → Chat mit `@whatsappbot:ng-automation.de` starten
+1. Element öffnen → Chat mit `@whatsappbot:wolfbraun.link` starten
 2. `login` eingeben
 3. QR-Code scannen mit WhatsApp auf dem Handy
 4. Fertig - alle WhatsApp Chats erscheinen als Matrix Räume
 
 ### Telegram
 
-1. Element öffnen → Chat mit `@telegrambot:ng-automation.de` starten
+1. Element öffnen → Chat mit `@telegrambot:wolfbraun.link` starten
 2. `login` eingeben
 3. Telegram-Nummer eingeben → Code bestätigen
 4. Fertig - Telegram Chats werden synchronisiert
@@ -124,7 +124,7 @@ channel = "extern-kunden"
 
 [[gateway.inout]]
 account = "matrix.ng-matrix"
-channel = "#kunden:ng-automation.de"
+channel = "#kunden:wolfbraun.link"
 ```
 
 ## Backup
@@ -143,7 +143,7 @@ docker cp matrix-synapse:/data/signing.key ./signing.key.backup
 ## Troubleshooting
 
 ### Federation testen
-https://federationtester.matrix.org/?server=ng-automation.de
+https://federationtester.matrix.org/?server=wolfbraun.link
 
 ### Logs prüfen
 ```bash
@@ -154,7 +154,7 @@ docker logs matrix-telegram -f
 
 ### Synapse Health Check
 ```bash
-curl https://matrix.ng-automation.de/health
+curl https://matrix.wolfbraun.link/health
 ```
 
 ## Ressourcen
