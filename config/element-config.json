@@ -5,7 +5,7 @@
       "server_name": "${BASE_DOMAIN}"
     }
   },
-  "brand": "NG Automation Chat",
+  "brand": "Wachstumspartner Chat",
   "integrations_ui_url": "",
   "integrations_rest_url": "",
   "integrations_widgets_urls": [],
