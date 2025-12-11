@@ -35,14 +35,13 @@ services:
     image: matrixdotorg/synapse:latest
     container_name: matrix-synapse
     restart: unless-stopped
+    user: "0:0"  # Run as root to avoid permission issues
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       SYNAPSE_CONFIG_DIR: /data
       SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
-      UID: 1000
-      GID: 1000
       # Config values für envsubst
       BASE_DOMAIN: ${BASE_DOMAIN}
       SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
