@@ -35,13 +35,12 @@ services:
     image: matrixdotorg/synapse:latest
     container_name: matrix-synapse
     restart: unless-stopped
-    user: "0:0"  # Run as root to avoid permission issues
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      SYNAPSE_CONFIG_DIR: /data
-      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+      SYNAPSE_CONFIG_DIR: /config
+      SYNAPSE_CONFIG_PATH: /config/homeserver.yaml
       # Config values für envsubst
       BASE_DOMAIN: ${BASE_DOMAIN}
       SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
@@ -53,13 +52,13 @@ services:
       - synapse_data:/data
     configs:
       - source: homeserver_config
-        target: /data/homeserver.yaml
+        target: /config/homeserver.yaml
       - source: log_config
-        target: /data/log.config
+        target: /config/log.config
       - source: whatsapp_registration
-        target: /data/bridges/whatsapp.yaml
+        target: /config/bridges/whatsapp.yaml
       - source: telegram_registration
-        target: /data/bridges/telegram.yaml
+        target: /config/bridges/telegram.yaml
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
       interval: 15s
@@ -218,7 +217,7 @@ configs:
           port: 5432
           cp_min: 5
           cp_max: 10
-      log_config: "/data/log.config"
+      log_config: "/config/log.config"
       media_store_path: /data/media_store
       max_upload_size: 50M
       url_preview_enabled: true
@@ -245,8 +244,8 @@ configs:
       suppress_key_server_warning: true
       report_stats: false
       app_service_config_files:
-        - /data/bridges/whatsapp.yaml
-        - /data/bridges/telegram.yaml
+        - /config/bridges/whatsapp.yaml
+        - /config/bridges/telegram.yaml
       retention:
         enabled: true
         default_policy:
