@@ -43,12 +43,24 @@ services:
       SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
       UID: 1000
       GID: 1000
+      # Config values für envsubst
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REGISTRATION_SECRET: ${REGISTRATION_SECRET}
+      MACAROON_SECRET: ${MACAROON_SECRET}
+      FORM_SECRET: ${FORM_SECRET}
     volumes:
       - synapse_data:/data
-      - ./config/homeserver.yaml:/data/homeserver.yaml:ro
-      - ./config/log.config:/data/log.config:ro
-      - ./bridges/whatsapp/registration.yaml:/data/bridges/whatsapp.yaml:ro
-      - ./bridges/telegram/registration.yaml:/data/bridges/telegram.yaml:ro
+    configs:
+      - source: homeserver_config
+        target: /data/homeserver.yaml
+      - source: log_config
+        target: /data/log.config
+      - source: whatsapp_registration
+        target: /data/bridges/whatsapp.yaml
+      - source: telegram_registration
+        target: /data/bridges/telegram.yaml
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
       interval: 15s
@@ -79,8 +91,12 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
-    volumes:
-      - ./config/element-config.json:/app/config.json:ro
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
+    configs:
+      - source: element_config
+        target: /app/config.json
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.element.rule=Host(`${ELEMENT_DOMAIN}`)"
@@ -99,9 +115,13 @@ services:
     image: nginx:alpine
     container_name: matrix-wellknown
     restart: unless-stopped
-    volumes:
-      - ./config/well-known.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./config/well-known:/usr/share/nginx/html/.well-known:ro
+    configs:
+      - source: wellknown_nginx_config
+        target: /etc/nginx/conf.d/default.conf
+      - source: wellknown_client
+        target: /usr/share/nginx/html/.well-known/matrix/client
+      - source: wellknown_server
+        target: /usr/share/nginx/html/.well-known/matrix/server
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wellknown.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`/.well-known/matrix`)"
@@ -121,9 +141,15 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      WHATSAPP_AS_TOKEN: ${WHATSAPP_AS_TOKEN}
+      WHATSAPP_HS_TOKEN: ${WHATSAPP_HS_TOKEN}
     volumes:
       - whatsapp_data:/data
-      - ./bridges/whatsapp/config.yaml:/data/config.yaml
+    configs:
+      - source: whatsapp_config
+        target: /data/config.yaml
     networks:
       - matrix-internal
 
@@ -136,9 +162,18 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_AS_TOKEN: ${TELEGRAM_AS_TOKEN}
+      TELEGRAM_HS_TOKEN: ${TELEGRAM_HS_TOKEN}
     volumes:
       - telegram_data:/data
-      - ./bridges/telegram/config.yaml:/data/config.yaml
+    configs:
+      - source: telegram_config
+        target: /data/config.yaml
     networks:
       - matrix-internal
 
@@ -151,10 +186,307 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
-    volumes:
-      - ./bridges/matterbridge/matterbridge.toml:/etc/matterbridge/matterbridge.toml:ro
+    configs:
+      - source: matterbridge_config
+        target: /etc/matterbridge/matterbridge.toml
     networks:
       - matrix-internal
+
+# =============================================================================
+# CONFIGS (Inline-Konfigurationsdateien)
+# =============================================================================
+configs:
+  homeserver_config:
+    content: |
+      server_name: "${BASE_DOMAIN}"
+      public_baseurl: "https://${SYNAPSE_DOMAIN}/"
+      listeners:
+        - port: 8008
+          tls: false
+          type: http
+          x_forwarded: true
+          bind_addresses: ['0.0.0.0']
+          resources:
+            - names: [client, federation]
+              compress: false
+      database:
+        name: psycopg2
+        args:
+          user: synapse
+          password: "${DB_PASSWORD}"
+          database: synapse
+          host: postgres
+          port: 5432
+          cp_min: 5
+          cp_max: 10
+      log_config: "/data/log.config"
+      media_store_path: /data/media_store
+      max_upload_size: 50M
+      url_preview_enabled: true
+      enable_registration: false
+      registration_shared_secret: "${REGISTRATION_SECRET}"
+      use_presence: false
+      enable_search: true
+      rc_message:
+        per_second: 5
+        burst_count: 25
+      rc_registration:
+        per_second: 0.1
+        burst_count: 3
+      rc_login:
+        address:
+          per_second: 0.5
+          burst_count: 5
+        account:
+          per_second: 0.5
+          burst_count: 5
+      signing_key_path: "/data/signing.key"
+      trusted_key_servers:
+        - server_name: "matrix.org"
+      suppress_key_server_warning: true
+      report_stats: false
+      app_service_config_files:
+        - /data/bridges/whatsapp.yaml
+        - /data/bridges/telegram.yaml
+      retention:
+        enabled: true
+        default_policy:
+          min_lifetime: 1d
+          max_lifetime: 365d
+      media_retention:
+        local_media_lifetime: 180d
+        remote_media_lifetime: 14d
+      macaroon_secret_key: "${MACAROON_SECRET}"
+      form_secret: "${FORM_SECRET}"
+
+  log_config:
+    content: |
+      version: 1
+      formatters:
+        precise:
+          format: '%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s - %(message)s'
+      handlers:
+        console:
+          class: logging.StreamHandler
+          formatter: precise
+      loggers:
+        synapse.storage.SQL:
+          level: WARNING
+      root:
+        level: WARNING
+        handlers: [console]
+      disable_existing_loggers: false
+
+  element_config:
+    content: |
+      {
+        "default_server_config": {
+          "m.homeserver": {
+            "base_url": "https://${SYNAPSE_DOMAIN}",
+            "server_name": "${BASE_DOMAIN}"
+          }
+        },
+        "brand": "Wachstumspartner Chat",
+        "integrations_ui_url": "",
+        "integrations_rest_url": "",
+        "integrations_widgets_urls": [],
+        "disable_custom_urls": false,
+        "disable_guests": true,
+        "disable_login_language_selector": false,
+        "disable_3pid_login": true,
+        "default_country_code": "DE",
+        "show_labs_settings": true,
+        "features": {
+          "feature_video_rooms": true,
+          "feature_element_call_video_rooms": true,
+          "feature_group_calls": true
+        },
+        "default_theme": "dark",
+        "room_directory": {
+          "servers": ["${BASE_DOMAIN}"]
+        },
+        "setting_defaults": {
+          "breadcrumbs": true
+        },
+        "jitsi": {
+          "preferred_domain": "meet.element.io"
+        }
+      }
+
+  wellknown_nginx_config:
+    content: |
+      server {
+          listen 80;
+          server_name _;
+          location /.well-known/matrix/ {
+              root /usr/share/nginx/html;
+              default_type application/json;
+              add_header Access-Control-Allow-Origin *;
+              add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+              add_header Access-Control-Allow-Headers "X-Requested-With, Content-Type, Authorization";
+          }
+      }
+
+  wellknown_client:
+    content: |
+      {
+        "m.homeserver": {
+          "base_url": "https://${SYNAPSE_DOMAIN}"
+        }
+      }
+
+  wellknown_server:
+    content: |
+      {
+        "m.server": "${SYNAPSE_DOMAIN}:443"
+      }
+
+  whatsapp_config:
+    content: |
+      homeserver:
+        address: http://synapse:8008
+        domain: ${BASE_DOMAIN}
+        software: standard
+      appservice:
+        address: http://whatsapp-bridge:29318
+        hostname: 0.0.0.0
+        port: 29318
+        database:
+          type: sqlite3-fk-wal
+          uri: /data/whatsapp.db
+        id: whatsapp
+        bot:
+          username: whatsappbot
+          displayname: WhatsApp Bridge Bot
+          avatar: mxc://maunium.net/NeXNQarUbrlYBiPCpprYsRqr
+        as_token: ${WHATSAPP_AS_TOKEN}
+        hs_token: ${WHATSAPP_HS_TOKEN}
+      bridge:
+        username_template: whatsapp_{{.}}
+        displayname_template: "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else}}{{.JID}}{{end}} (WA)"
+        permissions:
+          "*": relay
+          "${BASE_DOMAIN}": user
+          "@admin:${BASE_DOMAIN}": admin
+        relay:
+          enabled: true
+          message_formats:
+            m.text: "<b>{{ .Sender.Displayname }}</b>: {{ .Message }}"
+            m.notice: "<b>{{ .Sender.Displayname }}</b>: {{ .Message }}"
+            m.emote: "* <b>{{ .Sender.Displayname }}</b> {{ .Message }}"
+            m.file: "<b>{{ .Sender.Displayname }}</b> sent a file"
+            m.image: "<b>{{ .Sender.Displayname }}</b> sent an image"
+            m.audio: "<b>{{ .Sender.Displayname }}</b> sent an audio file"
+            m.video: "<b>{{ .Sender.Displayname }}</b> sent a video"
+            m.location: "<b>{{ .Sender.Displayname }}</b> sent a location"
+        history_sync:
+          create_portals: true
+          backfill: true
+          max_initial_conversations: 20
+        allow_user_invite: true
+        delivery_receipts: true
+        send_presence_on_typing: true
+        double_puppet_server_map: {}
+        login_shared_secret_map: {}
+      logging:
+        min_level: warn
+        writers:
+          - type: stdout
+            format: pretty-colored
+
+  whatsapp_registration:
+    content: |
+      id: whatsapp
+      url: http://whatsapp-bridge:29318
+      as_token: ${WHATSAPP_AS_TOKEN}
+      hs_token: ${WHATSAPP_HS_TOKEN}
+      sender_localpart: whatsappbot
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: ^@whatsapp_.*:${BASE_DOMAIN_ESCAPED}$
+            exclusive: true
+          - regex: ^@whatsappbot:${BASE_DOMAIN_ESCAPED}$
+            exclusive: true
+
+  telegram_config:
+    content: |
+      homeserver:
+        address: http://synapse:8008
+        domain: ${BASE_DOMAIN}
+        software: standard
+      appservice:
+        address: http://telegram-bridge:29317
+        hostname: 0.0.0.0
+        port: 29317
+        database:
+          type: sqlite3-fk-wal
+          uri: /data/telegram.db
+        id: telegram
+        bot:
+          username: telegrambot
+          displayname: Telegram Bridge Bot
+        as_token: ${TELEGRAM_AS_TOKEN}
+        hs_token: ${TELEGRAM_HS_TOKEN}
+      telegram:
+        api_id: ${TELEGRAM_API_ID}
+        api_hash: ${TELEGRAM_API_HASH}
+        bot_token: ${TELEGRAM_BOT_TOKEN}
+      bridge:
+        username_template: telegram_{userid}
+        displayname_template: "{displayname} (TG)"
+        permissions:
+          "*": relaybot
+          "${BASE_DOMAIN}": user
+          "@admin:${BASE_DOMAIN}": admin
+      logging:
+        min_level: warn
+        writers:
+          - type: stdout
+            format: pretty-colored
+
+  telegram_registration:
+    content: |
+      id: telegram
+      url: http://telegram-bridge:29317
+      as_token: ${TELEGRAM_AS_TOKEN}
+      hs_token: ${TELEGRAM_HS_TOKEN}
+      sender_localpart: telegrambot
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: ^@telegram_.*:${BASE_DOMAIN_ESCAPED}$
+            exclusive: true
+          - regex: ^@telegrambot:${BASE_DOMAIN_ESCAPED}$
+            exclusive: true
+
+  matterbridge_config:
+    content: |
+      [general]
+      RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
+
+      [matrix.mymatrix]
+      Server = "http://synapse:8008"
+      Login = "matterbridge"
+      Password = "${MATTERBRIDGE_PASSWORD}"
+      RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
+      NoHomeServerSuffix = false
+
+      # Slack Gateway (aktivieren wenn SLACK_BOT_TOKEN gesetzt)
+      # [slack.myslack]
+      # Token = "${SLACK_BOT_TOKEN}"
+      #
+      # [[gateway]]
+      # name = "matrix-slack-bridge"
+      # enable = true
+      #
+      # [[gateway.inout]]
+      # account = "matrix.mymatrix"
+      # channel = "#general:${BASE_DOMAIN}"
+      #
+      # [[gateway.inout]]
+      # account = "slack.myslack"
+      # channel = "general"
 
 # =============================================================================
 # VOLUMES
