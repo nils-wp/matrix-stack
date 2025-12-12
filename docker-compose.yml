@@ -198,8 +198,8 @@ services:
 configs:
   homeserver_config:
     content: |
-      server_name: "${BASE_DOMAIN}"
-      public_baseurl: "https://${SYNAPSE_DOMAIN}/"
+      server_name: "wolfbraun.link"
+      public_baseurl: "https://matrix.wolfbraun.link/"
       listeners:
         - port: 8008
           tls: false
@@ -213,7 +213,7 @@ configs:
         name: psycopg2
         args:
           user: synapse
-          password: "${DB_PASSWORD}"
+          password: "ae049c33ff00fc5f97a6bc9b75e1600326f836f5161984d7f00c5e44995d6c59"
           database: synapse
           host: postgres
           port: 5432
@@ -244,7 +244,7 @@ configs:
         - 'ff00::/8'
         - 'fec0::/10'
       enable_registration: false
-      registration_shared_secret: "${REGISTRATION_SECRET}"
+      registration_shared_secret: "a77f74e4e53032e343b4eb906b86d393399b59e0f888a61e1e9e217eb8954b04"
       use_presence: false
       enable_search: true
       rc_message:
@@ -276,8 +276,8 @@ configs:
       media_retention:
         local_media_lifetime: 180d
         remote_media_lifetime: 14d
-      macaroon_secret_key: "${MACAROON_SECRET}"
-      form_secret: "${FORM_SECRET}"
+      macaroon_secret_key: "9b881b8f74f34f98c86bb0d49704862f810cc6f83654e4f35da1433434f52374"
+      form_secret: "07a9bf2bd0682bfffa9061479a741eacf33fe94fc3a3d238cf1fc1af360ef4f3"
 
   log_config:
     content: |
@@ -302,8 +302,8 @@ configs:
       {
         "default_server_config": {
           "m.homeserver": {
-            "base_url": "https://${SYNAPSE_DOMAIN}",
-            "server_name": "${BASE_DOMAIN}"
+            "base_url": "https://matrix.wolfbraun.link",
+            "server_name": "wolfbraun.link"
           }
         },
         "brand": "Wachstumspartner Chat",
@@ -323,7 +323,7 @@ configs:
         },
         "default_theme": "dark",
         "room_directory": {
-          "servers": ["${BASE_DOMAIN}"]
+          "servers": ["wolfbraun.link"]
         },
         "setting_defaults": {
           "breadcrumbs": true
@@ -351,21 +351,21 @@ configs:
     content: |
       {
         "m.homeserver": {
-          "base_url": "https://${SYNAPSE_DOMAIN}"
+          "base_url": "https://matrix.wolfbraun.link"
         }
       }
 
   wellknown_server:
     content: |
       {
-        "m.server": "${SYNAPSE_DOMAIN}:443"
+        "m.server": "matrix.wolfbraun.link:443"
       }
 
   whatsapp_config:
     content: |
       homeserver:
         address: http://synapse:8008
-        domain: ${BASE_DOMAIN}
+        domain: wolfbraun.link
         software: standard
       appservice:
         address: http://whatsapp-bridge:29318
@@ -379,15 +379,15 @@ configs:
           username: whatsappbot
           displayname: WhatsApp Bridge Bot
           avatar: mxc://maunium.net/NeXNQarUbrlYBiPCpprYsRqr
-        as_token: ${WHATSAPP_AS_TOKEN}
-        hs_token: ${WHATSAPP_HS_TOKEN}
+        as_token: 64186ce369b4610d38166a1ca1d076ac7d52086a91738803fa5b3425390fefad
+        hs_token: ab74d7b08c04dfb8bdba2a9d9d57d8bca480bbfd4eb5adb2dd4c8a6f0fac9f57
       bridge:
         username_template: whatsapp_{{.}}
         displayname_template: "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else}}{{.JID}}{{end}} (WA)"
         permissions:
           "*": relay
-          "${BASE_DOMAIN}": user
-          "@admin:${BASE_DOMAIN}": admin
+          "wolfbraun.link": user
+          "@admin:wolfbraun.link": admin
         relay:
           enabled: true
           message_formats:
@@ -418,22 +418,22 @@ configs:
     content: |
       id: whatsapp
       url: http://whatsapp-bridge:29318
-      as_token: ${WHATSAPP_AS_TOKEN}
-      hs_token: ${WHATSAPP_HS_TOKEN}
+      as_token: 64186ce369b4610d38166a1ca1d076ac7d52086a91738803fa5b3425390fefad
+      hs_token: ab74d7b08c04dfb8bdba2a9d9d57d8bca480bbfd4eb5adb2dd4c8a6f0fac9f57
       sender_localpart: whatsappbot
       rate_limited: false
       namespaces:
         users:
-          - regex: ^@whatsapp_.*:${BASE_DOMAIN_ESCAPED}$
+          - regex: ^@whatsapp_.*:wolfbraun\.link$
             exclusive: true
-          - regex: ^@whatsappbot:${BASE_DOMAIN_ESCAPED}$
+          - regex: ^@whatsappbot:wolfbraun\.link$
             exclusive: true
 
   telegram_config:
     content: |
       homeserver:
         address: http://synapse:8008
-        domain: ${BASE_DOMAIN}
+        domain: wolfbraun.link
         software: standard
       appservice:
         address: http://telegram-bridge:29317
@@ -446,19 +446,19 @@ configs:
         bot:
           username: telegrambot
           displayname: Telegram Bridge Bot
-        as_token: ${TELEGRAM_AS_TOKEN}
-        hs_token: ${TELEGRAM_HS_TOKEN}
+        as_token: 3981027b234d7fb7bb93b5a532a4db1998755ff0a0e331bcddefa063871beb1e
+        hs_token: 9c27ab266cff7b9bfc31a4ccd7a431460f192604f1d6cfce52e6059dec56300b
       telegram:
-        api_id: ${TELEGRAM_API_ID}
-        api_hash: ${TELEGRAM_API_HASH}
-        bot_token: ${TELEGRAM_BOT_TOKEN}
+        api_id: PLACEHOLDER_GET_FROM_MY_TELEGRAM_ORG
+        api_hash: PLACEHOLDER_GET_FROM_MY_TELEGRAM_ORG
+        bot_token: PLACEHOLDER_GET_FROM_BOTFATHER
       bridge:
         username_template: telegram_{userid}
         displayname_template: "{displayname} (TG)"
         permissions:
           "*": relaybot
-          "${BASE_DOMAIN}": user
-          "@admin:${BASE_DOMAIN}": admin
+          "wolfbraun.link": user
+          "@admin:wolfbraun.link": admin
       logging:
         min_level: warn
         writers:
@@ -469,15 +469,15 @@ configs:
     content: |
       id: telegram
       url: http://telegram-bridge:29317
-      as_token: ${TELEGRAM_AS_TOKEN}
-      hs_token: ${TELEGRAM_HS_TOKEN}
+      as_token: 3981027b234d7fb7bb93b5a532a4db1998755ff0a0e331bcddefa063871beb1e
+      hs_token: 9c27ab266cff7b9bfc31a4ccd7a431460f192604f1d6cfce52e6059dec56300b
       sender_localpart: telegrambot
       rate_limited: false
       namespaces:
         users:
-          - regex: ^@telegram_.*:${BASE_DOMAIN_ESCAPED}$
+          - regex: ^@telegram_.*:wolfbraun\.link$
             exclusive: true
-          - regex: ^@telegrambot:${BASE_DOMAIN_ESCAPED}$
+          - regex: ^@telegrambot:wolfbraun\.link$
             exclusive: true
 
   matterbridge_config:
@@ -488,13 +488,13 @@ configs:
       [matrix.mymatrix]
       Server = "http://synapse:8008"
       Login = "matterbridge"
-      Password = "${MATTERBRIDGE_PASSWORD}"
+      Password = "85b3c5b23fb1288360eb95d03cbc6694"
       RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
       NoHomeServerSuffix = false
 
       # Slack Gateway (aktivieren wenn SLACK_BOT_TOKEN gesetzt)
       # [slack.myslack]
-      # Token = "${SLACK_BOT_TOKEN}"
+      # Token = "PLACEHOLDER_GET_FROM_SLACK_API"
       #
       # [[gateway]]
       # name = "matrix-slack-bridge"
@@ -502,7 +502,7 @@ configs:
       #
       # [[gateway.inout]]
       # account = "matrix.mymatrix"
-      # channel = "#general:${BASE_DOMAIN}"
+      # channel = "#general:wolfbraun.link"
       #
       # [[gateway.inout]]
       # account = "slack.myslack"
