@@ -60,20 +60,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.synapse.rule=Host(`matrix.wolfbraun.link`)"
-      - "traefik.http.routers.synapse.entrypoints=https"
-      - "traefik.http.routers.synapse.tls=true"
-      - "traefik.http.routers.synapse.tls.certresolver=letsencrypt"
-      - "traefik.http.services.synapse.loadbalancer.server.port=8008"
-      # Federation endpoint
-      - "traefik.http.routers.synapse-federation.rule=Host(`matrix.wolfbraun.link`) && PathPrefix(`/_matrix/federation`)"
-      - "traefik.http.routers.synapse-federation.entrypoints=https"
-      - "traefik.http.routers.synapse-federation.tls=true"
+    ports:
+      - "8008:8008"
     networks:
       - matrix-internal
-      - coolify
 
   # ---------------------------------------------------------------------------
   # ELEMENT WEB CLIENT
@@ -87,16 +77,10 @@ services:
     configs:
       - source: element_config
         target: /app/config.json
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.element.rule=Host(`element.wolfbraun.link`)"
-      - "traefik.http.routers.element.entrypoints=https"
-      - "traefik.http.routers.element.tls=true"
-      - "traefik.http.routers.element.tls.certresolver=letsencrypt"
-      - "traefik.http.services.element.loadbalancer.server.port=80"
+    ports:
+      - "8080:80"
     networks:
       - matrix-internal
-      - coolify
 
   # ---------------------------------------------------------------------------
   # WELL-KNOWN DELEGATION (für @user:domain.de statt @user:matrix.domain.de)
@@ -112,15 +96,10 @@ services:
         target: /usr/share/nginx/html/.well-known/matrix/client
       - source: wellknown_server
         target: /usr/share/nginx/html/.well-known/matrix/server
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.wellknown.rule=Host(`wolfbraun.link`) && PathPrefix(`/.well-known/matrix`)"
-      - "traefik.http.routers.wellknown.entrypoints=https"
-      - "traefik.http.routers.wellknown.tls=true"
-      - "traefik.http.routers.wellknown.tls.certresolver=letsencrypt"
-      - "traefik.http.services.wellknown.loadbalancer.server.port=80"
+    ports:
+      - "8081:80"
     networks:
-      - coolify
+      - matrix-internal
 
   # ---------------------------------------------------------------------------
   # MAUTRIX-WHATSAPP BRIDGE
@@ -502,5 +481,3 @@ volumes:
 networks:
   matrix-internal:
     driver: bridge
-  coolify:
-    external: true
