@@ -43,13 +43,6 @@ services:
     environment:
       SYNAPSE_CONFIG_DIR: /config
       SYNAPSE_CONFIG_PATH: /config/homeserver.yaml
-      # Config values für envsubst
-      BASE_DOMAIN: ${BASE_DOMAIN}
-      SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REGISTRATION_SECRET: ${REGISTRATION_SECRET}
-      MACAROON_SECRET: ${MACAROON_SECRET}
-      FORM_SECRET: ${FORM_SECRET}
     volumes:
       - synapse_data:/data
     configs:
@@ -69,13 +62,13 @@ services:
       start_period: 30s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.synapse.rule=Host(`${SYNAPSE_DOMAIN}`)"
+      - "traefik.http.routers.synapse.rule=Host(`matrix.wolfbraun.link`)"
       - "traefik.http.routers.synapse.entrypoints=https"
       - "traefik.http.routers.synapse.tls=true"
       - "traefik.http.routers.synapse.tls.certresolver=letsencrypt"
       - "traefik.http.services.synapse.loadbalancer.server.port=8008"
       # Federation endpoint
-      - "traefik.http.routers.synapse-federation.rule=Host(`${SYNAPSE_DOMAIN}`) && PathPrefix(`/_matrix/federation`)"
+      - "traefik.http.routers.synapse-federation.rule=Host(`matrix.wolfbraun.link`) && PathPrefix(`/_matrix/federation`)"
       - "traefik.http.routers.synapse-federation.entrypoints=https"
       - "traefik.http.routers.synapse-federation.tls=true"
     networks:
@@ -91,15 +84,12 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
-    environment:
-      BASE_DOMAIN: ${BASE_DOMAIN}
-      SYNAPSE_DOMAIN: ${SYNAPSE_DOMAIN}
     configs:
       - source: element_config
         target: /app/config.json
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.element.rule=Host(`${ELEMENT_DOMAIN}`)"
+      - "traefik.http.routers.element.rule=Host(`element.wolfbraun.link`)"
       - "traefik.http.routers.element.entrypoints=https"
       - "traefik.http.routers.element.tls=true"
       - "traefik.http.routers.element.tls.certresolver=letsencrypt"
@@ -124,7 +114,7 @@ services:
         target: /usr/share/nginx/html/.well-known/matrix/server
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wellknown.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`/.well-known/matrix`)"
+      - "traefik.http.routers.wellknown.rule=Host(`wolfbraun.link`) && PathPrefix(`/.well-known/matrix`)"
       - "traefik.http.routers.wellknown.entrypoints=https"
       - "traefik.http.routers.wellknown.tls=true"
       - "traefik.http.routers.wellknown.tls.certresolver=letsencrypt"
@@ -141,10 +131,6 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
-    environment:
-      BASE_DOMAIN: ${BASE_DOMAIN}
-      WHATSAPP_AS_TOKEN: ${WHATSAPP_AS_TOKEN}
-      WHATSAPP_HS_TOKEN: ${WHATSAPP_HS_TOKEN}
     volumes:
       - whatsapp_data:/data
     configs:
@@ -162,13 +148,6 @@ services:
     restart: unless-stopped
     depends_on:
       - synapse
-    environment:
-      BASE_DOMAIN: ${BASE_DOMAIN}
-      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
-      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_AS_TOKEN: ${TELEGRAM_AS_TOKEN}
-      TELEGRAM_HS_TOKEN: ${TELEGRAM_HS_TOKEN}
     volumes:
       - telegram_data:/data
     configs:
