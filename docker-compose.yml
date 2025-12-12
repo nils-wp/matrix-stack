@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: synapse
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ae049c33ff00fc5f97a6bc9b75e1600326f836f5161984d7f00c5e44995d6c59
       POSTGRES_DB: synapse
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
     volumes:
