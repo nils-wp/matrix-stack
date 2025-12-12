@@ -60,8 +60,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    ports:
-      - "8008:8008"
     networks:
       - matrix-internal
 
@@ -77,8 +75,6 @@ services:
     configs:
       - source: element_config
         target: /app/config.json
-    ports:
-      - "8080:80"
     networks:
       - matrix-internal
 
@@ -96,8 +92,6 @@ services:
         target: /usr/share/nginx/html/.well-known/matrix/client
       - source: wellknown_server
         target: /usr/share/nginx/html/.well-known/matrix/server
-    ports:
-      - "8081:80"
     networks:
       - matrix-internal
 
