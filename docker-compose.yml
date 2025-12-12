@@ -29,27 +29,15 @@ services:
       - matrix-internal
 
   # ---------------------------------------------------------------------------
-  # SYNAPSE DATA INIT (fixes volume permissions)
-  # ---------------------------------------------------------------------------
-  synapse-init:
-    image: alpine:latest
-    container_name: matrix-synapse-init
-    command: sh -c "chown -R 991:991 /data && chmod -R 755 /data"
-    volumes:
-      - synapse_data:/data
-    networks:
-      - matrix-internal
-
-  # ---------------------------------------------------------------------------
   # SYNAPSE HOMESERVER
   # ---------------------------------------------------------------------------
   synapse:
     image: matrixdotorg/synapse:latest
     container_name: matrix-synapse
     restart: unless-stopped
+    user: "root"
+    entrypoint: ["/bin/sh", "-c", "chown -R 991:991 /data && exec /start.py"]
     depends_on:
-      synapse-init:
-        condition: service_completed_successfully
       postgres:
         condition: service_healthy
     environment:
