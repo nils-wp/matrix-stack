@@ -89,6 +89,7 @@ services:
       - synapse
     environment:
       REACT_APP_SERVER: "https://matrix.wolfbraun.link"
+      # Domain: admin.matrix.wolfbraun.link:80
     networks:
       - matrix-internal
 
