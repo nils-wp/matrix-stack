@@ -79,6 +79,20 @@ services:
       - matrix-internal
 
   # ---------------------------------------------------------------------------
+  # SYNAPSE ADMIN UI
+  # ---------------------------------------------------------------------------
+  synapse-admin:
+    image: awesometechnologies/synapse-admin:latest
+    container_name: matrix-admin
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    environment:
+      REACT_APP_SERVER: "https://matrix.wolfbraun.link"
+    networks:
+      - matrix-internal
+
+  # ---------------------------------------------------------------------------
   # WELL-KNOWN DELEGATION (für @user:domain.de statt @user:matrix.domain.de)
   # ---------------------------------------------------------------------------
   well-known:
