@@ -79,6 +79,23 @@ services:
       - matrix-internal
 
   # ---------------------------------------------------------------------------
+  # DIMENSION - Integration Manager
+  # ---------------------------------------------------------------------------
+  dimension:
+    image: turt2live/matrix-dimension:latest
+    container_name: matrix-dimension
+    restart: unless-stopped
+    depends_on:
+      - synapse
+    volumes:
+      - dimension_data:/data
+    configs:
+      - source: dimension_config
+        target: /data/config.yaml
+    networks:
+      - matrix-internal
+
+  # ---------------------------------------------------------------------------
   # SYNAPSE ADMIN UI
   # ---------------------------------------------------------------------------
   synapse-admin:
@@ -274,9 +291,10 @@ configs:
           }
         },
         "brand": "Wachstumspartner Chat",
-        "integrations_ui_url": "",
-        "integrations_rest_url": "",
-        "integrations_widgets_urls": [],
+        "integrations_ui_url": "https://dimension.matrix.wolfbraun.link/element",
+        "integrations_rest_url": "https://dimension.matrix.wolfbraun.link/api/v1/scalar",
+        "integrations_widgets_urls": ["https://dimension.matrix.wolfbraun.link/widgets"],
+        "integrations_jitsi_widget_url": "https://dimension.matrix.wolfbraun.link/widgets/jitsi",
         "disable_custom_urls": false,
         "disable_guests": true,
         "disable_login_language_selector": false,
@@ -475,6 +493,30 @@ configs:
       # account = "slack.myslack"
       # channel = "general"
 
+  dimension_config:
+    content: |
+      web:
+        port: 8184
+        address: "0.0.0.0"
+      homeserver:
+        name: "wolfbraun.link"
+        clientServerUrl: "http://synapse:8008"
+        federationUrl: "http://synapse:8008"
+        accessToken: "DIMENSION_ADMIN_TOKEN_PLACEHOLDER"
+      admins:
+        - "@admin:wolfbraun.link"
+      widgetBlacklist: []
+      database:
+        file: "/data/dimension.db"
+      logging:
+        file: "/data/dimension.log"
+        console: true
+        consoleLevel: warn
+        fileLevel: info
+        rotate:
+          size: 52428800
+          count: 5
+
 # =============================================================================
 # VOLUMES
 # =============================================================================
@@ -483,6 +525,7 @@ volumes:
   synapse_data:
   whatsapp_data:
   telegram_data:
+  dimension_data:
 
 # =============================================================================
 # NETWORKS
