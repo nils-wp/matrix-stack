@@ -426,9 +426,9 @@ configs:
         as_token: 3981027b234d7fb7bb93b5a532a4db1998755ff0a0e331bcddefa063871beb1e
         hs_token: 9c27ab266cff7b9bfc31a4ccd7a431460f192604f1d6cfce52e6059dec56300b
       telegram:
-        api_id: PLACEHOLDER_GET_FROM_MY_TELEGRAM_ORG
-        api_hash: PLACEHOLDER_GET_FROM_MY_TELEGRAM_ORG
-        bot_token: PLACEHOLDER_GET_FROM_BOTFATHER
+        api_id: 30932921
+        api_hash: a68ab2101013d0409759fe4aa7dcd8a5
+        bot_token: 8576271750:AAG7rT-8jyRS-zmXTlqVVo2Jc0lhIsiPFUw
       bridge:
         username_template: telegram_{userid}
         displayname_template: "{displayname} (TG)"
