@@ -348,6 +348,10 @@ configs:
 
   whatsapp_config:
     content: |
+      network:
+        id: whatsapp
+        displayname: WhatsApp Bridge Bot
+        avatar: mxc://maunium.net/NeXNQarUbrlYBiPCpprYsRqr
       homeserver:
         address: http://synapse:8008
         domain: wolfbraun.link
