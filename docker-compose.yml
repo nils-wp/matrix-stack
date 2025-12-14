@@ -434,10 +434,23 @@ configs:
           "wolfbraun.link": user
           "@admin:wolfbraun.link": admin
       logging:
-        min_level: debug
-        writers:
-          - type: stdout
-            format: pretty-colored
+        version: 1
+        formatters:
+          colored:
+            (): mautrix.util.logging.color.ColorFormatter
+            format: "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s"
+        handlers:
+          console:
+            class: logging.StreamHandler
+            formatter: colored
+        loggers:
+          mau:
+            level: DEBUG
+          telethon:
+            level: INFO
+        root:
+          level: DEBUG
+          handlers: [console]
 
   telegram_registration:
     content: |
