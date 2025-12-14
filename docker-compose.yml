@@ -411,14 +411,11 @@ configs:
       homeserver:
         address: http://synapse:8008
         domain: wolfbraun.link
-        software: standard
       appservice:
         address: http://telegram-bridge:29317
         hostname: 0.0.0.0
         port: 29317
-        database:
-          type: sqlite3-fk-wal
-          uri: /data/telegram.db
+        database: sqlite:///data/telegram.db
         id: telegram
         bot:
           username: telegrambot
@@ -437,7 +434,7 @@ configs:
           "wolfbraun.link": user
           "@admin:wolfbraun.link": admin
       logging:
-        min_level: warn
+        min_level: debug
         writers:
           - type: stdout
             format: pretty-colored
