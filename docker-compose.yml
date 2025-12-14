@@ -415,7 +415,7 @@ configs:
         address: http://telegram-bridge:29317
         hostname: 0.0.0.0
         port: 29317
-        database: sqlite:///data/telegram.db
+        database: sqlite:////data/telegram.db
         id: telegram
         bot:
           username: telegrambot
