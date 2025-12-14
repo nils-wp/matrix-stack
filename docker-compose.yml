@@ -54,6 +54,8 @@ services:
         target: /config/bridges/whatsapp.yaml
       - source: telegram_registration
         target: /config/bridges/telegram.yaml
+      - source: slack_registration
+        target: /config/bridges/slack.yaml
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
       interval: 15s
@@ -166,17 +168,21 @@ services:
       - matrix-internal
 
   # ---------------------------------------------------------------------------
-  # MATTERBRIDGE (SLACK + ANDERE)
+  # MAUTRIX-SLACK BRIDGE
   # ---------------------------------------------------------------------------
-  matterbridge:
-    image: 42wim/matterbridge:latest
-    container_name: matrix-matterbridge
+  slack-bridge:
+    image: dock.mau.dev/mautrix/slack:latest
+    container_name: matrix-slack
     restart: unless-stopped
     depends_on:
       - synapse
+    volumes:
+      - slack_data:/data
     configs:
-      - source: matterbridge_config
-        target: /etc/matterbridge/matterbridge.toml
+      - source: slack_config
+        target: /data/config.yaml
+      - source: slack_registration
+        target: /data/registration.yaml
     networks:
       - matrix-internal
 
@@ -256,6 +262,7 @@ configs:
       app_service_config_files:
         - /config/bridges/whatsapp.yaml
         - /config/bridges/telegram.yaml
+        - /config/bridges/slack.yaml
       retention:
         enabled: true
         default_policy:
@@ -450,33 +457,50 @@ configs:
           - regex: ^@telegrambot:wolfbraun\.link$
             exclusive: true
 
-  matterbridge_config:
+  slack_config:
     content: |
-      [general]
-      RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
+      homeserver:
+        address: http://synapse:8008
+        domain: wolfbraun.link
+      appservice:
+        address: http://slack-bridge:29312
+        hostname: 0.0.0.0
+        port: 29312
+        id: slack
+        bot:
+          username: slackbot
+          displayname: Slack Bridge Bot
+        as_token: 26371968395178088bcb4faec2603a36b850752a40800f465855a9a8843328bf
+        hs_token: 6baf5498499c17c5e9ef060bfa07ebe673590526f4304846bec40b19c9e28306
+      database:
+        type: sqlite3-fk-wal
+        uri: file:/data/slack.db?_txlock=immediate
+      bridge:
+        command_prefix: "!slack"
+        permissions:
+          "*": relay
+          "wolfbraun.link": user
+          "@admin:wolfbraun.link": admin
+      logging:
+        min_level: debug
+        writers:
+          - type: stdout
+            format: pretty-colored
 
-      [matrix.mymatrix]
-      Server = "http://synapse:8008"
-      Login = "matterbridge"
-      Password = "85b3c5b23fb1288360eb95d03cbc6694"
-      RemoteNickFormat = "[{PROTOCOL}] <{NICK}> "
-      NoHomeServerSuffix = false
-
-      # Slack Gateway (aktivieren wenn SLACK_BOT_TOKEN gesetzt)
-      # [slack.myslack]
-      # Token = "PLACEHOLDER_GET_FROM_SLACK_API"
-      #
-      # [[gateway]]
-      # name = "matrix-slack-bridge"
-      # enable = true
-      #
-      # [[gateway.inout]]
-      # account = "matrix.mymatrix"
-      # channel = "#general:wolfbraun.link"
-      #
-      # [[gateway.inout]]
-      # account = "slack.myslack"
-      # channel = "general"
+  slack_registration:
+    content: |
+      id: slack
+      url: http://slack-bridge:29312
+      as_token: 26371968395178088bcb4faec2603a36b850752a40800f465855a9a8843328bf
+      hs_token: 6baf5498499c17c5e9ef060bfa07ebe673590526f4304846bec40b19c9e28306
+      sender_localpart: slackbot
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: ^@slack_.*:wolfbraun\.link$
+            exclusive: true
+          - regex: ^@slackbot:wolfbraun\.link$
+            exclusive: true
 
   dimension_config:
     content: |
@@ -510,6 +534,7 @@ volumes:
   synapse_data:
   whatsapp_data:
   telegram_data:
+  slack_data:
   dimension_data:
 
 # =============================================================================
