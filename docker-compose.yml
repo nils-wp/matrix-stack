@@ -381,7 +381,7 @@ configs:
         permissions:
           "*": relay
           "wolfbraun.link": user
-          "@admin:wolfbraun.link": admin
+          "@nils:wolfbraun.link": admin
           "@wolf:wolfbraun.link": admin
       whatsapp:
         os_name: Mautrix-WhatsApp bridge
@@ -433,7 +433,7 @@ configs:
         permissions:
           "*": relaybot
           "wolfbraun.link": user
-          "@admin:wolfbraun.link": admin
+          "@nils:wolfbraun.link": admin
           "@wolf:wolfbraun.link": admin
       logging:
         version: 1
@@ -492,7 +492,7 @@ configs:
         permissions:
           "*": relay
           "wolfbraun.link": user
-          "@admin:wolfbraun.link": admin
+          "@nils:wolfbraun.link": admin
           "@wolf:wolfbraun.link": admin
       logging:
         min_level: debug
