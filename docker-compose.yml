@@ -382,6 +382,7 @@ configs:
           "*": relay
           "wolfbraun.link": user
           "@admin:wolfbraun.link": admin
+          "@wolf:wolfbraun.link": admin
       whatsapp:
         os_name: Mautrix-WhatsApp bridge
         browser_name: unknown
@@ -433,6 +434,7 @@ configs:
           "*": relaybot
           "wolfbraun.link": user
           "@admin:wolfbraun.link": admin
+          "@wolf:wolfbraun.link": admin
       logging:
         version: 1
         formatters:
@@ -491,6 +493,7 @@ configs:
           "*": relay
           "wolfbraun.link": user
           "@admin:wolfbraun.link": admin
+          "@wolf:wolfbraun.link": admin
       logging:
         min_level: debug
         writers:
