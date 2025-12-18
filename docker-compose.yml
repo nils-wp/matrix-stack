@@ -524,7 +524,7 @@ configs:
         name: "wolfbraun.link"
         clientServerUrl: "http://synapse:8008"
         federationUrl: "http://synapse:8008"
-        accessToken: "syt_ZGltZW5zaW9u_RyHsHDteTxqcPYGYDmjF_3EPcLH"
+        accessToken: "syt_ZGltZW5zaW9uMw_SCkQZTkXzmiQmVzxaLZO_4cF8x5"
       admins:
         - "@admin:wolfbraun.link"
       widgetBlacklist: []
